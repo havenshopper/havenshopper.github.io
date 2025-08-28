@@ -1,11 +1,404 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Haven Shopper Test</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Product</title>
+  <style>
+:root{ --card-min: 200px; --card-max: 280px; }
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ====== GRID หลัก ====== */
+.menu-grid{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+@media (min-width: 480px)  { .menu-grid { grid-template-columns: repeat(2, 1fr); gap: 18px; padding: 20px; } }
+@media (min-width: 768px)  { .menu-grid { grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 24px; } }
+@media (min-width: 1024px) { .menu-grid { grid-template-columns: repeat(4, 1fr); gap: 24px; padding: 32px; } }
+@media (min-width: 1280px) { .menu-grid { grid-template-columns: repeat(5, 1fr); } }
+
+/* ====== CARD ====== */
+.menu-item{
+  display: grid;
+  grid-template-rows: auto 1fr auto; /* รูป | ชื่อ (ยืด) | ราคา */
+  width: 100%;
+  break-inside: avoid;
+  margin: 0;
+  border: 1px solid #e9e9e9;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(0,0,0,.05);
+  padding: 10px;
+  transition: box-shadow .25s, transform .25s;
+  cursor: pointer;
+}
+.menu-item:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.1); transform: translateY(-2px); }
+.menu-item:active { transform: translateY(0); }
+
+/* รูปในการ์ด (ขนาดเท่ากันทุกใบ) */
+.menu-item img{
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  height: auto;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+  transition: transform .25s ease;
+}
+.menu-item:hover img { transform: scale(1.05); }
+
+/* ชื่อสินค้า: ล็อก 2 บรรทัดให้การ์ดเท่ากัน */
+.menu-item h3{
+  margin: 6px 0 0 0;
+  font-size: 16px; font-weight: 700; line-height: 1.35;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: calc(1em * 1.35 * 2);
+}
+@media (min-width: 480px){ .menu-item h3{ font-size: 17px; } }
+@media (min-width: 768px){ .menu-item h3{ font-size: 18px; } }
+
+/* ป้ายราคา */
+.price-tag{
+  background: #333; color: #fff;
+  font-weight: 700; border-radius: 8px;
+  padding: 8px 10px; margin-top: 6px;
+  text-align: center;
+}
+
+/* ====== PREVIEW (เดสก์ท็อป hover) ====== */
+.image-preview {
+  position: absolute;
+  border: 2px solid #fff;
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.2);
+  display: none;
+  z-index: 1000;
+  pointer-events: none;
+  width: clamp(320px, 40vw, 720px);
+  max-height: 80vh;
+  overflow: hidden;
+}
+.image-preview img {
+  width: 100%; height: auto; border-radius: 8px; display: block; object-fit: contain;
+}
+
+/* ====== MODAL (คลิกแล้วเปิด) + ซูม/แพน ====== */
+.preview-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.92);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 2000; padding: 12px;
+  backdrop-filter: blur(4px);
+  touch-action: none; /* ให้ pinch/drag ลื่น */
+}
+.zoom-wrap {
+  max-width: min(96vw, 1400px);
+  max-height: 92vh;
+  width: 100%; height: 100%;
+  display: grid; place-items: center;
+  overflow: hidden; border-radius: 12px;
+}
+#zoom-img {
+  max-width: 100%; max-height: 100%;
+  transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(var(--scale, 1));
+  transform-origin: center center;
+  object-fit: contain; border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  cursor: grab; will-change: transform;
+}
+#zoom-img.zooming { cursor: grabbing; }
+
+/* ปุ่มปิด */
+.close-modal {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  background: rgba(255,255,255,0.92);
+  border: none; border-radius: 50%;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 22px; color: #333;
+  backdrop-filter: blur(8px);
+  transition: transform .15s ease;
+}
+.close-modal:active { transform: scale(0.96); }
+
+/* Loading skeleton */
+.menu-item img[src=""] {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+@keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* Touch devices: ลดเอฟเฟกต์ hover */
+@media (hover: none) and (pointer: coarse){
+  .menu-item:hover { transform: none; box-shadow: 0 6px 16px rgba(0,0,0,.05); }
+  .menu-item:active { transform: scale(0.98); }
+}
+
+/* จอเล็กมาก */
+@media (max-width: 360px){
+  .menu-grid{ padding: 12px; gap: 12px; }
+  .menu-item h3{ font-size: 15px; min-height: 40px; }
+  .price-tag{ font-size: 13px; padding: 8px 12px; }
+}
+  </style>
 </head>
-<body style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:sans-serif">
-  <h1>✅ Hello, Haven Shopper!</h1>
+<body>
+  <div class="menu-grid" id="menu-container"></div>
+
+  <!-- Hover Preview (เดสก์ท็อป) -->
+  <div id="image-preview" class="image-preview"><img src="" alt="Preview"></div>
+
+  <!-- Modal (คลิกแล้วเปิด) -->
+  <div id="preview-modal" class="preview-modal" role="dialog" aria-modal="true">
+    <button class="close-modal" aria-label="ปิด">&times;</button>
+    <div class="zoom-wrap">
+      <img id="zoom-img" src="" alt="Preview Large">
+    </div>
+  </div>
+
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <script>
+    const sheetURL = 'https://docs.google.com/spreadsheets/d/164Mfwu89jAz3EyN5QLFt4l0LAmXztFhEiDz997cG9LU/gviz/tq?sheet=Product';
+
+    google.charts.load('current', { packages: ['corechart'] });
+    google.charts.setOnLoadCallback(fetchData);
+
+    function fetchData() {
+      fetch(sheetURL)
+        .then(res => res.text())
+        .then(rep => {
+          const jsonData = JSON.parse(rep.substr(47).slice(0, -2));
+          const rows = jsonData.table.rows;
+          let html = '';
+
+          rows.forEach(row => {
+            const stockStatus = (row.c[6]?.v || '').trim().toLowerCase();
+            const category    = (row.c[15]?.v || '').trim().toLowerCase();
+            if (stockStatus === 'in stock' && category === 'gadget it') {
+              const name  = row.c[3]?.v  || 'ไม่ระบุชื่อ';
+              const price = row.c[10]?.v || 'ไม่ระบุราคา';
+              const image = row.c[17]?.v || '';
+              html += `
+                <div class="menu-item">
+                  <img src="${image}" alt="${name}" loading="lazy">
+                  <h3>${name}</h3>
+                  <div class="price-tag">ราคาสินค้า : ${price} บาท</div>
+                </div>`;
+            }
+          });
+
+          document.getElementById('menu-container').innerHTML = html;
+          bindPreviewHandlers();
+        })
+        .catch(error => {
+          console.error('Error fetching data:', error);
+          document.getElementById('menu-container').innerHTML =
+            '<p style="text-align: center; padding: 40px; color: #666;">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+        });
+    }
+
+    function bindPreviewHandlers(){
+      const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+      const modal    = document.getElementById('preview-modal');
+      const modalImg = document.getElementById('zoom-img');
+      const closeBtn = modal.querySelector('.close-modal');
+
+      attachZoom(modal);
+
+      function openModalWith(src){
+        if (!src) return;
+        modalImg.src = src;
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        modal.dispatchEvent(new Event('show-zoom'));
+      }
+      function closeModal(){
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      // ปิด modal: คลิกพื้นหลัง / ปุ่ม / ESC
+      modal.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
+      closeBtn.addEventListener('click', (e)=>{ e.stopPropagation(); closeModal(); });
+      document.addEventListener('keydown', (e)=>{ if (e.key === 'Escape' && modal.style.display === 'flex') closeModal(); });
+
+      // เดสก์ท็อป: hover preview + click เปิด modal
+      if(!isTouch){
+        const preview = document.getElementById('image-preview');
+
+        document.addEventListener('mouseover', function (e) {
+          if (e.target.tagName === 'IMG' && e.target.closest('.menu-item')) {
+            const src = e.target.getAttribute('src');
+            if (src) {
+              preview.style.display = 'block';
+              preview.querySelector('img').src = src;
+              document.addEventListener('mousemove', movePreview);
+            }
+          } else {
+            preview.style.display = 'none';
+            document.removeEventListener('mousemove', movePreview);
+          }
+
+          function movePreview(ev) {
+            const offset = 20;
+            const rect = preview.getBoundingClientRect();
+            const ww = window.innerWidth, wh = window.innerHeight;
+            let left = ev.pageX + offset, top = ev.pageY + offset;
+            if (left + rect.width > ww) left = ev.pageX - rect.width - offset;
+            if (top + rect.height > wh) top = ev.pageY - rect.height - offset;
+            preview.style.left = left + 'px';
+            preview.style.top  = top  + 'px';
+          }
+        });
+
+        // คลิกเปิด modal
+        document.getElementById('menu-container').addEventListener('click', (e)=>{
+          const img = e.target.closest('.menu-item img');
+          if(!img) return;
+          e.preventDefault(); e.stopPropagation();
+          openModalWith(img.getAttribute('src'));
+        });
+
+      } else {
+        // มือถือ: แตะเปิด modal
+        document.getElementById('menu-container').addEventListener('click', (e)=>{
+          const img = e.target.closest('.menu-item img');
+          if(!img) return;
+          e.preventDefault(); e.stopPropagation();
+          openModalWith(img.getAttribute('src'));
+        });
+      }
+    }
+
+    /* ====== ระบบซูม/แพนใน Modal ====== */
+    function attachZoom(modal) {
+      const wrap = modal.querySelector('.zoom-wrap');
+      const img  = modal.querySelector('#zoom-img');
+
+      const state = {
+        scale: 1, tx: 0, ty: 0,
+        minScale: 1, maxScale: 4,
+        startX: 0, startY: 0, startTx: 0, startTy: 0,
+        isPanning: false, lastTap: 0
+      };
+
+      function apply() {
+        img.style.setProperty('--scale', state.scale);
+        img.style.setProperty('--tx', state.tx + 'px');
+        img.style.setProperty('--ty', state.ty + 'px');
+      }
+      function clampPan() {
+        // วัดขนาดภาพเมื่อ scale=1 เพื่อคำนวณกรอบแพน
+        const prevScale = state.scale, prevTx = state.tx, prevTy = state.ty;
+        img.style.setProperty('--scale', 1);
+        img.style.setProperty('--tx', '0px');
+        img.style.setProperty('--ty', '0px');
+        const baseRect = img.getBoundingClientRect();
+        img.style.setProperty('--scale', prevScale);
+        img.style.setProperty('--tx', prevTx + 'px');
+        img.style.setProperty('--ty', prevTy + 'px');
+
+        const contW = wrap.clientWidth, contH = wrap.clientHeight;
+        const curW = baseRect.width  * state.scale;
+        const curH = baseRect.height * state.scale;
+        const maxX = Math.max(0, (curW - contW) / 2);
+        const maxY = Math.max(0, (curH - contH) / 2);
+        state.tx = Math.min(maxX, Math.max(-maxX, state.tx));
+        state.ty = Math.min(maxY, Math.max(-maxY, state.ty));
+      }
+      function setScale(val){
+        state.scale = Math.min(state.maxScale, Math.max(state.minScale, val));
+        clampPan(); apply();
+      }
+      function resetView(){ state.scale = 1; state.tx = 0; state.ty = 0; apply(); }
+
+      // Mouse pan
+      img.addEventListener('mousedown', (e)=>{
+        if (state.scale <= 1) return;
+        state.isPanning = true;
+        state.startX = e.clientX; state.startY = e.clientY;
+        state.startTx = state.tx; state.startTy = state.ty;
+        img.classList.add('zooming');
+      });
+      window.addEventListener('mousemove', (e)=>{
+        if (!state.isPanning) return;
+        state.tx = state.startTx + (e.clientX - state.startX);
+        state.ty = state.startTy + (e.clientY - state.startY);
+        clampPan(); apply();
+      });
+      window.addEventListener('mouseup', ()=>{ state.isPanning = false; img.classList.remove('zooming'); });
+
+      // Wheel zoom
+      wrap.addEventListener('wheel', (e)=>{
+        e.preventDefault();
+        const delta = -Math.sign(e.deltaY) * 0.2;
+        setScale(state.scale + delta);
+      }, { passive: false });
+
+      // Double click toggle zoom
+      img.addEventListener('dblclick', ()=>{ (state.scale === 1) ? setScale(2.5) : resetView(); });
+
+      // Touch: tap/double-tap, pan, pinch
+      let touchStartDist = 0, touchStartScale = 1;
+      const dist = (a,b)=>Math.hypot(a.clientX-b.clientX, a.clientY-b.clientY);
+
+      wrap.addEventListener('touchstart', (e)=>{
+        if (e.touches.length === 1) {
+          const t = e.touches[0];
+          state.isPanning = state.scale > 1;
+          state.startX = t.clientX; state.startY = t.clientY;
+          state.startTx = state.tx; state.startTy = state.ty;
+
+          const now = Date.now();
+          if (now - state.lastTap < 300) { (state.scale === 1) ? setScale(2.5) : resetView(); }
+          state.lastTap = now;
+        } else if (e.touches.length === 2) {
+          touchStartDist = dist(e.touches[0], e.touches[1]);
+          touchStartScale = state.scale;
+          state.isPanning = false;
+        }
+      }, { passive: true });
+
+      wrap.addEventListener('touchmove', (e)=>{
+        if (e.touches.length === 1 && state.scale > 1 && state.isPanning) {
+          const t = e.touches[0];
+          state.tx = state.startTx + (t.clientX - state.startX);
+          state.ty = state.startTy + (t.clientY - state.startY);
+          clampPan(); apply();
+        } else if (e.touches.length === 2) {
+          e.preventDefault();
+          const d = dist(e.touches[0], e.touches[1]);
+          setScale(touchStartScale * (d / (touchStartDist || d)));
+        }
+      }, { passive: false });
+
+      modal.addEventListener('show-zoom', ()=>{ resetView(); setTimeout(()=>{ clampPan(); apply(); }, 0); });
+    }
+
+    // (ออปชัน) Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    }
+  </script>
 </body>
 </html>
