@@ -851,6 +851,24 @@
         min-width: auto;
       }
     }
+
+
+    .site-header {
+      display: flex;
+      flex-direction: column;
+      /* จากแนวนอน → แนวตั้ง */
+      align-items: center;
+      /* จัดกลางแนวนอน */
+      text-align: center;
+      gap: 10px;
+      /* ระยะห่างรูปกับข้อความ */
+    }
+
+    .logo-img {
+      height: 80px;
+      /* ปรับขนาดโลโก้ */
+
+    }
   </style>
 
 </head>
@@ -909,9 +927,9 @@
   <div class="header">
     <h1 class="site-header">
       <img src="https://drive.google.com/thumbnail?id=1HGxfThUV4U5VxnmLAngTf5VqICV5ZV1l" alt="Logo" class="logo-img">
-      <n></n>
       <span>HAVEN SHOPPER STOCK</span>
     </h1>
+
 
     <div class="category-menu">
       <button class="category-btn active" data-category="new">🎉 สินค้าเข้าใหม่!</button>
