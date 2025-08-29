@@ -5,8 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <title>HAVEN SHOPPER</title>
   <style>
     :root {
@@ -84,16 +83,6 @@
       }
     }
 
-
-
-
-
-
-
-
-
-
-
     .header h1 {
       text-align: center;
       margin: 0 0 20px 0;
@@ -134,8 +123,6 @@
     .category-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-
-
     }
 
     .category-btn.active {
@@ -482,19 +469,450 @@
       height: 50px;
       /* ขนาดโลโก้ */
     }
+
+
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Prompt', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .content {
+      text-align: center;
+      padding: 50px 20px;
+      color: #666;
+    }
+
+    /* Floating Action Button */
+    .fab-main {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 50%;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      z-index: 1001;
+      border: none;
+    }
+
+    .fab-main:hover {
+      transform: scale(1.1);
+      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
+    }
+
+    .fab-main.active {
+      background: linear-gradient(135deg, #ff6b6b, #ff5722);
+      transform: rotate(45deg);
+    }
+
+    /* Contact Menu Overlay */
+    .contact-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .contact-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Contact Menu */
+    .contact-menu {
+      position: fixed;
+      bottom: 100px;
+      right: 25px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 25px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      transform: scale(0) translateY(20px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 1002;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      min-width: 280px;
+    }
+
+    .contact-menu.active {
+      transform: scale(1) translateY(0);
+      opacity: 1;
+    }
+
+    .menu-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .menu-header h3 {
+      color: #2d3748;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .menu-header p {
+      color: #718096;
+      font-size: 14px;
+    }
+
+    .contact-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      padding: 15px 20px;
+      background: white;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #2d3748;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .contact-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      background: #f8f9fa;
+    }
+
+    .contact-icon {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      font-size: 18px;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .messenger .contact-icon {
+      background: linear-gradient(135deg, #00B2FF, #006AFF);
+    }
+
+    .line .contact-icon {
+      background: linear-gradient(135deg, #00C300, #00B900);
+    }
+
+    .phone .contact-icon {
+      background: linear-gradient(135deg, #FF6B6B, #FF5722);
+    }
+
+    .contact-info {
+      text-align: left;
+      flex: 1;
+    }
+
+    .contact-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 2px;
+    }
+
+    .contact-subtitle {
+      font-size: 12px;
+      color: #718096;
+    }
+
+    /* Arrow pointing to FAB */
+    .menu-arrow {
+      position: absolute;
+      bottom: -8px;
+      right: 22px;
+      width: 16px;
+      height: 16px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+      backdrop-filter: blur(20px);
+    }
+
+    /* Mobile adjustments */
+    @media (max-width: 480px) {
+      .contact-menu {
+        right: 15px;
+        left: 15px;
+        bottom: 100px;
+        min-width: auto;
+      }
+
+      .fab-main {
+        right: 20px;
+        bottom: 20px;
+      }
+
+      .menu-arrow {
+        right: 25px;
+      }
+
+      .contact-item {
+        padding: 12px 15px;
+      }
+
+      .contact-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        margin-right: 12px;
+      }
+    }
+
+    /* Animation delays */
+    .contact-item:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+
+    .contact-item:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+
+    .contact-item:nth-child(3) {
+      animation-delay: 0.2s;
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(15px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .contact-menu.active .contact-item {
+      animation: slideInUp 0.4s ease forwards;
+    }
+
+
+    iframe {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
   </style>
+
+
+  <!-- ใน index.html -->
+  <iframe src="TEST.html" style="position: fixed; bottom: 0; right: 0; width: 350px; height: 200px; 
+               border: none; background: transparent; z-index:1; pointer-events:none;">
+  </iframe>
+  <script>
+    // removed: iframe pointerEvents auto
+
+
+    let isMenuOpen = false;
+
+    function toggleContactMenu() {
+      const overlay = document.getElementById('contactOverlay');
+      const menu = document.getElementById('contactMenu');
+      const fab = document.getElementById('fabMain');
+      const icon = document.getElementById('fabIcon');
+
+      isMenuOpen = !isMenuOpen;
+
+      if (isMenuOpen) {
+        overlay.classList.add('active');
+        menu.classList.add('active');
+        fab.classList.add('active');
+        icon.className = 'fas fa-times';
+      } else {
+        overlay.classList.remove('active');
+        menu.classList.remove('active');
+        fab.classList.remove('active');
+        icon.className = 'fas fa-comment';
+      }
+    }
+
+    // ปิดเมนูเมื่อคลิกที่ overlay
+    document.getElementById('contactOverlay').addEventListener('click', function () {
+      if (isMenuOpen) {
+        toggleContactMenu();
+      }
+    });
+
+    function openMessenger(event) {
+      event.preventDefault();
+      window.open('https://www.facebook.com/share/19eN49NTUR/?mibextid=wwXIfr', '_blank');
+      toggleContactMenu();
+    }
+
+    function openLine(event) {
+      event.preventDefault();
+      window.open('https://line.me/R/ti/p/sreenoomhihi', '_blank');
+      toggleContactMenu();
+    }
+
+    // ปิดเมนูด้วย ESC key
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && isMenuOpen) {
+        toggleContactMenu();
+      }
+    });
+
+    // เอฟเฟกต์ pulse สำหรับปุ่มหลัก
+    setInterval(() => {
+      if (!isMenuOpen) {
+        const fab = document.getElementById('fabMain');
+        fab.style.animation = 'pulse 2s infinite';
+      }
+    }, 5000);
+
+    const style = document.createElement('style');
+    style.textContent = `
+            @keyframes pulse {
+                0% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
+                50% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6), 0 0 0 10px rgba(102, 126, 234, 0.1); }
+                100% { box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); }
+            }
+        `;
+    document.head.appendChild(style);
+
+  </script>
+
+
+  <style id="floating-menu-fix">
+    :root {
+      --fab-size: 60px;
+      --fab-gap: 25px;
+      --menu-gap: 16px;
+    }
+
+    .fab-main {
+      position: fixed;
+      bottom: var(--fab-gap);
+      right: var(--fab-gap);
+      width: var(--fab-size);
+      height: var(--fab-size);
+      z-index: 10010;
+    }
+
+    .contact-overlay {
+      z-index: 9990;
+    }
+
+    .contact-menu {
+      position: fixed;
+      right: var(--fab-gap);
+      bottom: calc(var(--fab-gap) + var(--fab-size) + var(--menu-gap));
+      z-index: 10000;
+    }
+
+    .menu-arrow {
+      bottom: -8px;
+      right: 22px;
+    }
+
+    @media (max-width: 480px) {
+      .contact-menu {
+        left: 15px;
+        right: 15px;
+        bottom: calc(var(--fab-gap) + var(--fab-size) + var(--menu-gap));
+        min-width: auto;
+      }
+    }
+  </style>
+
 </head>
 
 <body>
-  <div class="header">
+  <!-- Contact Overlay -->
+  <div class="contact-overlay" id="contactOverlay"></div>
 
+  <!-- Contact Menu -->
+  <div class="contact-menu" id="contactMenu">
+    <div class="menu-arrow"></div>
+    <div class="menu-header">
+      <h3>ช่องทางติดต่อ</h3>
+      <p>เลือกช่องทางที่สะดวกสำหรับคุณ</p>
+    </div>
+
+    <div class="contact-list">
+      <a href="#" class="contact-item messenger" onclick="openMessenger(event)">
+        <div class="contact-icon">
+          <i class="fab fa-facebook-messenger"></i>
+        </div>
+        <div class="contact-info">
+          <div class="contact-title">Facebook Messenger</div>
+          <div class="contact-subtitle">ส่งข้อความหาเราผ่าน Messenger</div>
+        </div>
+      </a>
+
+      <a href="#" class="contact-item line" onclick="openLine(event)">
+        <div class="contact-icon">
+          <i class="fab fa-line"></i>
+        </div>
+        <div class="contact-info">
+          <div class="contact-title">LINE Account</div>
+          <div class="contact-subtitle">แชทผ่าน LINE Official Account</div>
+        </div>
+      </a>
+      <!--
+      <a href="tel:092-756-6556" class="contact-item phone">
+        <div class="contact-icon">
+          <i class="fas fa-phone"></i>
+        </div>
+        <div class="contact-info">
+          <div class="contact-title">📱 โทรศัพท์</div>
+          <div class="contact-subtitle">โทร 080-013-2387</div>
+        </div>
+      </a>
+      -->
+    </div>
+  </div>
+
+  <!-- Floating Action Button -->
+  <button class="fab-main" id="fabMain" onclick="toggleContactMenu()">
+    <i class="fas fa-comment" id="fabIcon"></i>
+  </button>
+
+  <div class="header">
     <h1 class="site-header">
       <img src="https://drive.google.com/thumbnail?id=1HGxfThUV4U5VxnmLAngTf5VqICV5ZV1l" alt="Logo" class="logo-img">
       <n></n>
       <span>HAVEN SHOPPER STOCK</span>
+      <button href="Contact.html" class="category-btn" data-category=" ">📱 ช่องทางติดต่อ </button>
     </h1>
-
-
 
     <div class="category-menu">
       <button class="category-btn active" data-category="new">🎉 สินค้าเข้าใหม่!</button>
@@ -505,6 +923,7 @@
       <button class="category-btn" data-category="motorcycle/car parts">🚗 อะไหล่รถ</button>
       <button class="category-btn" data-category="sport">⚽ กีฬา</button>
       <button class="category-btn" data-category="music equipment">🎸 ดนตรี</button>
+
     </div>
   </div>
 
@@ -527,7 +946,7 @@
 
   <script>
     /* ============ CONFIG ============ */
-    const SHEET_ID = '164Mfwu89jAz3EyN5QLFt4l0LAmXztFhEiDz997cG9LU';
+    const SHEET_ID = '1T1ls-VUXfvBRAE4vOt5-b94POeZpG83jS4-SIqiN09U';
     const SHEET_NAME = 'Product';
 
     // ชื่อหมวดตามปุ่มในหน้า (data-category) → เปรียบเทียบกับค่าจากชีตแบบ lower-case
